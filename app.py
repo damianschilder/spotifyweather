@@ -7,7 +7,7 @@ from datetime import datetime
 from sklearn.linear_model import LinearRegression
 
 st.set_page_config(
-    page_title="weatherify dashboard",
+    page_title="Weatherify dashboard",
     page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -25,24 +25,12 @@ st.markdown("""
         background: linear-gradient(135deg, #121212, #004D40, #191970);
         color: #FFFFFF;
     }
-
-    .glassmorphic {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-radius: 1rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 20px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        margin-bottom: 1rem;
-    }
-
-    div[data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"] > div[data-testid="stVerticalBlock"] > div[data-testid="stElementContainer"] > [data-testid="stMarkdownContainer"] {
-        padding: 0;
-    }
     
     .kpi-card {
         padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 0.5rem;
+        height: 100%;
     }
     .kpi-title {
         font-size: 1rem;
@@ -83,8 +71,6 @@ st.markdown("""
 @st.cache_data
 def generate_sample_data():
     date_range = pd.date_range(start="2023-01-01", end="2023-12-31", freq='D')
-    num_days = len(date_range)
-    
     songs = [{"track_name": "As It Was", "artist_names": "Harry Styles"}, {"track_name": "Anti-Hero", "artist_names": "Taylor Swift"}, {"track_name": "Flowers", "artist_names": "Miley Cyrus"}, {"track_name": "Calm Down", "artist_names": "Rema & Selena Gomez"}, {"track_name": "Escapism.", "artist_names": "RAYE"}, {"track_name": "Kill Bill", "artist_names": "SZA"}, {"track_name": "Miracle", "artist_names": "Calvin Harris, Ellie Goulding"}, {"track_name": "Vampire", "artist_names": "Olivia Rodrigo"}, {"track_name": "Sprinter", "artist_names": "Dave & Central Cee"}, {"track_name": "Paint The Town Red", "artist_names": "Doja Cat"}]
     
     data = []
@@ -111,10 +97,8 @@ df = generate_sample_data()
 @st.cache_resource
 def train_model(target_variable):
     features = ['temperature_2m_mean (°C)', 'rain_sum (mm)', 'sunshine_duration (h)']
-    
     X = df[features]
     y = df[target_variable]
-    
     model = LinearRegression()
     model.fit(X, y)
     return model
@@ -128,14 +112,19 @@ st.sidebar.markdown(
         <h2 style="font-size: 1.75rem; font-weight: bold; color: #FFFFFF; margin: 0;">Weatherify</h2>
     </div>
     """, unsafe_allow_html=True)
-st.sidebar.header("filters")
+st.sidebar.info("This dashboard explores the correlation between weather patterns and the musical features of top Spotify songs in the UK.")
 
-date_range = st.sidebar.date_input(
-    "select date range",
-    value=(df['chart_date'].min().date(), df['chart_date'].max().date()),
-    min_value=df['chart_date'].min().date(),
-    max_value=df['chart_date'].max().date(),
-)
+st.title("Weatherify dashboard")
+st.markdown("<p style='color: rgba(255, 255, 255, 0.7);'>Explore the correlation between weather conditions in the UK and Spotify song features.</p>", unsafe_allow_html=True)
+
+with st.expander("Select date range"):
+    date_range = st.date_input(
+        "Filter data by date",
+        value=(df['chart_date'].min().date(), df['chart_date'].max().date()),
+        min_value=df['chart_date'].min().date(),
+        max_value=df['chart_date'].max().date(),
+    )
+
 if len(date_range) == 2:
     filtered_df = df[
         (df['chart_date'].dt.date >= date_range[0]) & 
@@ -143,10 +132,6 @@ if len(date_range) == 2:
     ]
 else:
     filtered_df = df
-
-
-st.title("weatherify dashboard")
-st.markdown("<p style='color: rgba(255, 255, 255, 0.7);'>explore the correlation between weather conditions in the uk and spotify song features.</p>", unsafe_allow_html=True)
 
 avg_valence = filtered_df['valence'].mean()
 avg_energy = filtered_df['energy'].mean()
@@ -160,8 +145,8 @@ kpi1, kpi2, kpi3 = st.columns(3)
 
 with kpi1:
     st.markdown(f"""
-    <div class="glassmorphic kpi-card">
-        <div class="kpi-title">average song positivity (valence)</div>
+    <div class="kpi-card">
+        <div class="kpi-title">Average song positivity (valence)</div>
         <div class="kpi-value">{avg_valence:.3f}</div>
         <div class="{'kpi-delta-pos' if delta_valence >= 0 else 'kpi-delta-neg'}">
             {delta_valence:+.2%} vs. yearly average
@@ -171,8 +156,8 @@ with kpi1:
 
 with kpi2:
     st.markdown(f"""
-    <div class="glassmorphic kpi-card">
-        <div class="kpi-title">average song energy</div>
+    <div class="kpi-card">
+        <div class="kpi-title">Average song energy</div>
         <div class="kpi-value">{avg_energy:.3f}</div>
         <div class="{'kpi-delta-pos' if delta_energy >= 0 else 'kpi-delta-neg'}">
             {delta_energy:+.2%} vs. yearly average
@@ -182,8 +167,8 @@ with kpi2:
 
 with kpi3:
     st.markdown(f"""
-    <div class="glassmorphic kpi-card">
-        <div class="kpi-title">average temperature</div>
+    <div class="kpi-card">
+        <div class="kpi-title">Average temperature</div>
         <div class="kpi-value">{avg_temp:.1f}°C</div>
         <div class="{'kpi-delta-pos' if delta_temp >= 0 else 'kpi-delta-neg'}">
             {delta_temp:+.1f}°C vs. yearly average
@@ -191,16 +176,25 @@ with kpi3:
     </div>
     """, unsafe_allow_html=True)
 
-
 st.markdown("<br>", unsafe_allow_html=True)
 
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    with st.container():
-        st.markdown("<div class='glassmorphic'>", unsafe_allow_html=True)
-        st.subheader("trends over time")
+    with st.container(border=True):
+        st.subheader("Trends over time")
         
+        feature_options = {
+            'valence': 'Song Positivity (Valence)',
+            'energy': 'Song Energy',
+            'danceability': 'Song Danceability'
+        }
+        selected_feature = st.selectbox(
+            'Select a feature to display:',
+            options=list(feature_options.keys()),
+            format_func=lambda x: feature_options[x]
+        )
+
         area_chart = alt.Chart(filtered_df).mark_area(
             line={'color':'#1DB954'},
             color=alt.Gradient(
@@ -210,9 +204,9 @@ with col1:
                 x1=1, x2=1, y1=1, y2=0
             )
         ).encode(
-            x=alt.X('chart_date:T', title='date', axis=alt.Axis(labelColor='white', titleColor='white')),
-            y=alt.Y('valence:Q', title='song positivity (valence)', axis=alt.Axis(labelColor='white', titleColor='white')),
-            tooltip=['chart_date', 'track_name', 'valence']
+            x=alt.X('chart_date:T', title='Date', axis=alt.Axis(labelColor='white', titleColor='white')),
+            y=alt.Y(f'{selected_feature}:Q', title=feature_options[selected_feature], axis=alt.Axis(labelColor='white', titleColor='white')),
+            tooltip=['chart_date', 'track_name', selected_feature]
         ).properties(
             background='transparent'
         ).configure_view(
@@ -220,14 +214,11 @@ with col1:
         ).interactive()
         
         st.altair_chart(area_chart, use_container_width=True)
-        st.info("insight: song positivity (valence) shows seasonal patterns, often peaking during sunnier months and dipping in winter.")
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.info("Insight: Audio features often show seasonal patterns, peaking during sunnier months and dipping in winter.")
 
 with col2:
-    with st.container():
-        st.markdown("<div class='glassmorphic'>", unsafe_allow_html=True)
-        st.subheader("audio fingerprint")
-        
+    with st.container(border=True):
+        st.subheader("Audio fingerprint")
         radar_features = ['danceability', 'energy', 'valence', 'instrumentalness']
         
         sunny_data = df[df['sunshine_duration (h)'] > df['sunshine_duration (h)'].quantile(0.8)].mean(numeric_only=True)
@@ -237,37 +228,101 @@ with col2:
         rainy_values = [rainy_data[f] for f in radar_features]
 
         fig = go.Figure()
-        fig.add_trace(go.Scatterpolar(r=sunny_values, theta=radar_features, fill='toself', name='sunny days', line=dict(color='#FFD700')))
-        fig.add_trace(go.Scatterpolar(r=rainy_values, theta=radar_features, fill='toself', name='rainy days', line=dict(color='#1E90FF')))
-        fig.update_layout(polar=dict(bgcolor="rgba(0,0,0,0)", angularaxis=dict(linecolor='rgba(255,255,255,0.4)', gridcolor='rgba(255,255,255,0.2)', tickfont=dict(color='white')), radialaxis=dict(showticklabels=False, linecolor='rgba(255,255,255,0.4)', gridcolor='rgba(255,255,255,0.2)')), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', showlegend=True, legend=dict(font=dict(color="white"), yanchor="bottom", y= -0.3, xanchor="center", x=0.5), height=400)
+        fig.add_trace(go.Scatterpolar(r=sunny_values, theta=radar_features, fill='toself', name='Sunny Days', line=dict(color='#FFD700')))
+        fig.add_trace(go.Scatterpolar(r=rainy_values, theta=radar_features, fill='toself', name='Rainy Days', line=dict(color='#1E90FF')))
+        fig.update_layout(
+            polar=dict(
+                bgcolor="rgba(0,0,0,0)", 
+                angularaxis=dict(linecolor='rgba(255,255,255,0.4)', gridcolor='rgba(255,255,255,0.2)', tickfont=dict(color='white')), 
+                radialaxis=dict(showticklabels=False, linecolor='rgba(255,255,255,0.4)', gridcolor='rgba(255,255,255,0.2)')
+            ), 
+            paper_bgcolor='rgba(0,0,0,0)', 
+            plot_bgcolor='rgba(0,0,0,0)', 
+            showlegend=True, 
+            legend=dict(font=dict(color="white"), yanchor="bottom", y= -0.3, xanchor="center", x=0.5), 
+            height=400,
+            margin=dict(l=20, r=20, t=40, b=20)
+        )
         st.plotly_chart(fig, use_container_width=True)
-        st.info("insight: music on sunny days tends to have higher energy and positivity (valence) compared to rainy days.")
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.info("Insight: Music on sunny days tends to have higher energy and positivity (valence) compared to rainy days.")
 
 st.markdown("---")
 
-st.header("prediction playground")
-st.markdown("<p style='color: rgba(255, 255, 255, 0.7);'>use the sliders to simulate weather conditions and predict the musical vibe.</p>", unsafe_allow_html=True)
+st.header("Explore correlations")
+with st.container(border=True):
+    corr_col1, corr_col2 = st.columns([1, 2])
 
-with st.container():
-    st.markdown("<div class='glassmorphic'>", unsafe_allow_html=True)
+    with corr_col1:
+        st.subheader("Graph options")
+        weather_options = {
+            'temperature_2m_mean (°C)': 'Temperature (°C)',
+            'rain_sum (mm)': 'Rainfall (mm)',
+            'sunshine_duration (h)': 'Sunshine (hours)'
+        }
+        music_options = {
+            'danceability': 'Danceability',
+            'energy': 'Energy',
+            'valence': 'Valence'
+        }
+
+        x_axis_var = st.selectbox(
+            "Select weather variable (X-axis):",
+            options=list(weather_options.keys()),
+            format_func=lambda x: weather_options[x]
+        )
+
+        y_axis_var = st.selectbox(
+            "Select music feature (Y-axis):",
+            options=list(music_options.keys()),
+            format_func=lambda x: music_options[x]
+        )
+    
+    with corr_col2:
+        scatter_plot = alt.Chart(filtered_df).mark_circle(size=60, opacity=0.5, color='#1DB954').encode(
+            x=alt.X(f'{x_axis_var}:Q', title=weather_options[x_axis_var]),
+            y=alt.Y(f'{y_axis_var}:Q', title=music_options[y_axis_var]),
+            tooltip=['chart_date', 'track_name', x_axis_var, y_axis_var]
+        )
+
+        regression_line = scatter_plot.transform_regression(
+            x_axis_var, y_axis_var
+        ).mark_line(color='white', strokeDash=[5,5])
+
+        final_chart = (scatter_plot + regression_line).properties(
+            background='transparent'
+        ).configure_axis(
+            labelColor='white',
+            titleColor='white',
+            gridColor='rgba(255, 255, 255, 0.2)'
+        ).configure_view(
+            strokeOpacity=0
+        ).interactive()
+
+        st.altair_chart(final_chart, use_container_width=True)
+
+st.markdown("---")
+
+st.header("Prediction playground")
+st.markdown("<p style='color: rgba(255, 255, 255, 0.7);'>Use the sliders to simulate weather conditions and predict the musical vibe.</p>", unsafe_allow_html=True)
+
+with st.container(border=True):
     pred_col1, pred_col2 = st.columns([1, 2])
 
     with pred_col1:
-        st.subheader("weather inputs")
+        st.subheader("Weather inputs")
         target_variable = st.selectbox(
-            "select music feature to predict:",
+            "Select music feature to predict:",
             ('valence', 'energy', 'danceability')
         )
         
         model = train_model(target_variable)
 
-        input_temp = st.slider("temperature (°C)", -5.0, 35.0, 15.0, 0.5)
-        input_rain = st.slider("rainfall (mm)", 0.0, 50.0, 0.0, 1.0)
-        input_sun = st.slider("sunshine (hours)", 0.0, 15.0, 8.0, 0.5)
+        input_temp = st.slider("Temperature (°C)", -5.0, 35.0, 15.0, 0.5)
+        input_rain = st.slider("Rainfall (mm)", 0.0, 50.0, 0.0, 1.0)
+        input_sun = st.slider("Sunshine (hours)", 0.0, 15.0, 8.0, 0.5)
 
     with pred_col2:
-        st.subheader("predicted music vibe")
+        st.subheader("Predicted music vibe")
         input_data = pd.DataFrame({
             'temperature_2m_mean (°C)': [input_temp],
             'rain_sum (mm)': [input_rain],
@@ -277,9 +332,18 @@ with st.container():
         prediction = model.predict(input_data)[0]
 
         st.metric(
-            label=f"predicted {target_variable.capitalize()}",
+            label=f"Predicted {target_variable.capitalize()}",
             value=f"{prediction:.3f}",
-            help="this value is predicted by a linear regression model based on the weather inputs."
+            help="This value is predicted by a linear regression model based on the weather inputs."
         )
-        st.info(f"a higher **{target_variable}** score generally means the music is more {'positive and cheerful' if target_variable == 'valence' else ('energetic and intense' if target_variable == 'energy' else 'danceable and rhythmic')}.")
-    st.markdown("</div>", unsafe_allow_html=True)
+        
+        description = ""
+        if target_variable == 'valence':
+            description = 'positive and cheerful'
+        elif target_variable == 'energy':
+            description = 'energetic and intense'
+        else:
+            description = 'danceable and rhythmic'
+            
+        st.info(f"A higher **{target_variable}** score generally means the music is more {description}.")
+
