@@ -9,8 +9,7 @@ from sklearn.linear_model import LinearRegression
 st.set_page_config(
     page_title="Weatherify dashboard",
     page_icon="",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 st.markdown("""
@@ -52,12 +51,6 @@ st.markdown("""
         font-size: 1rem;
         font-weight: 500;
         color: #FF4136;
-    }
-
-    [data-testid="stSidebar"] {
-        background: rgba(18, 18, 18, 0.8);
-        backdrop-filter: blur(5px);
-        -webkit-backdrop-filter: blur(5px);
     }
 
     header {visibility: hidden;}
@@ -102,17 +95,6 @@ def train_model(target_variable):
     model = LinearRegression()
     model.fit(X, y)
     return model
-
-st.sidebar.markdown(
-    """
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-        <svg fill="#1DB954" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 40px; height: 40px;">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.37 14.37c-.37.23-.83-.12-.75-.54.34-1.79-1.12-3.48-2.9-3.81-1.78-.33-3.48 1.12-3.81 2.9-.08.42-.52.67-.75-.54-1.79-.89-3.08-2.58-3.08-4.56s1.29-3.67 3.08-4.56c.23-.13.67.12.75.54.33 1.78 1.12 3.48 2.9 3.81 1.78.33 3.48-1.12 3.81-2.9.08-.42.52-.67-.75-.54 1.79.89 3.08 2.58 3.08 4.56s-1.29 3.67-3.08 4.56z"></path>
-        </svg>
-        <h2 style="font-size: 1.75rem; font-weight: bold; color: #FFFFFF; margin: 0;">Weatherify</h2>
-    </div>
-    """, unsafe_allow_html=True)
-st.sidebar.info("This dashboard explores the correlation between weather patterns and the musical features of top Spotify songs in the UK.")
 
 st.title("Weatherify dashboard")
 st.markdown("<p style='color: rgba(255, 255, 255, 0.7);'>Explore the correlation between weather conditions in the UK and Spotify song features.</p>", unsafe_allow_html=True)
